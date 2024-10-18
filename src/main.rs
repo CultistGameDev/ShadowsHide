@@ -6,10 +6,10 @@ fn transform_shader_pos(v: &Vec3, ratio: f32) -> Vec3 {
 
 #[macroquad::main("macroquad game jam")]
 async fn main() {
-    let render_target = render_target(screen_width() as u32, screen_height() as u32);
-    render_target.texture.set_filter(FilterMode::Nearest);
+    let target = render_target(screen_width() as u32, screen_height() as u32);
+    target.texture.set_filter(FilterMode::Nearest);
 
-    let mut material = load_material(
+    let material = load_material(
         ShaderSource::Glsl {
             vertex: SHADOW_VERTEX_SHADER,
             fragment: SHADOW_FRAGMENT_SHADER,
@@ -24,19 +24,14 @@ async fn main() {
     )
     .unwrap();
 
-    material.set_uniform("dims", Vec2::new(screen_width(), screen_height()));
-
     let shadow_cam: Camera2D = Camera2D {
         zoom: vec2(1.0, screen_width() / screen_height()),
         target: Vec2::new(0.0, 0.0),
-        render_target: Some(render_target.clone()),
+        render_target: Some(target.clone()),
         ..Default::default()
     };
 
     let ratio = screen_width() / screen_height();
-
-    let mut time = get_time();
-
     let mut shadow_pos = Vec3::new(0.0, 0.0, 0.1);
 
     loop {
@@ -53,7 +48,7 @@ async fn main() {
         gl_use_material(&material);
         material.set_uniform("pos_rad", transform_shader_pos(&shadow_pos, ratio));
         draw_texture_ex(
-            &render_target.texture,
+            &target.texture,
             0.0,
             0.0,
             WHITE,
