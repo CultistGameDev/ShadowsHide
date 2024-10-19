@@ -1,4 +1,5 @@
 use macroquad::prelude::*;
+use miniquad::window::screen_size;
 
 fn transform_shader_pos(v: &Vec3, ratio: f32) -> Vec3 {
     Vec3::new(v.x, v.y / ratio, v.z)
@@ -23,7 +24,8 @@ async fn main() {
         },
     )
     .unwrap();
-
+    material.set_uniform("dims", screen_size());
+    
     let shadow_cam: Camera2D = Camera2D {
         zoom: vec2(1.0, screen_width() / screen_height()),
         target: Vec2::new(0.0, 0.0),
