@@ -1,7 +1,21 @@
 [package]
-name = "macroquad"
+name = "shadowgame"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 macroquad = "0.4"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package.'*']
+opt-level = 3
+
+[package.metadata.bundle]
+name = "ShadowGame"
+identifier = "com.shadow.game"
+# icon = ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png"]
+resources = ["assets"]
+copyright = "ShadowGame 2024"
+category = "Game"

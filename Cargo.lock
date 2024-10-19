@@ -130,13 +130,6 @@ checksum = "8e9489c2807c139ffd9c1794f4af0ebe86a828db53ecdc7fea2111d0fed085d1"
 
 [[package]]
 name = "macroquad"
-version = "0.1.0"
-dependencies = [
- "macroquad 0.4.13",
-]
-
-[[package]]
-name = "macroquad"
 version = "0.4.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81fef16b2d4de22ac372b5d7d76273c0ead0a31f9de9bc649af8f816816db8a8"
@@ -252,6 +245,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5b9d34b8991d19d98081b46eacdd8eb58c6f2b201139f7c5f643cc155a633af"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "shadowgame"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
 ]
 
 [[package]]
