@@ -1,5 +1,5 @@
 use macroquad::prelude::*;
-use miniquad::{conf::Platform, window::screen_size};
+use miniquad::window::screen_size;
 
 fn transform_shader_pos(v: &Vec3, ratio: f32) -> Vec3 {
     Vec3::new(v.x, v.y / ratio, v.z)
@@ -16,10 +16,32 @@ fn window_conf() -> Conf {
     }
 }
 
+struct Light {
+    pos_rad: Vec3,
+    color: Vec3,
+}
+const MAX_LIGHTS: usize = 4;
+
 #[macroquad::main(window_conf())]
 async fn main() {
     let target = render_target(screen_width() as u32, screen_height() as u32);
     target.texture.set_filter(FilterMode::Nearest);
+
+    let mut uniforms = vec![
+        UniformDesc::new("pos_rad", UniformType::Float3),
+        UniformDesc::new("dims", UniformType::Float2),
+    ];
+    uniforms.reserve(MAX_LIGHTS * 2);
+    for i in 0..MAX_LIGHTS {
+        uniforms.push(UniformDesc::new(
+            &format!("lights[{}].pos_rad", i),
+            UniformType::Float3,
+        ));
+        uniforms.push(UniformDesc::new(
+            &format!("lights[{}].color", i),
+            UniformType::Float3,
+        ));
+    }
 
     let material = load_material(
         ShaderSource::Glsl {
@@ -27,10 +49,7 @@ async fn main() {
             fragment: SHADOW_FRAGMENT_SHADER,
         },
         MaterialParams {
-            uniforms: vec![
-                UniformDesc::new("pos_rad", UniformType::Float3),
-                UniformDesc::new("dims", UniformType::Float2),
-            ],
+            uniforms: uniforms,
             ..Default::default()
         },
     )
@@ -45,11 +64,29 @@ async fn main() {
     };
 
     let ratio = screen_width() / screen_height();
-    let mut shadow_pos = Vec3::new(0.0, 0.0, 0.1);
+
+    let mut lights: Vec<Light> = vec![
+        Light {
+            pos_rad: Vec3::new(0.0, 0.0, 0.1),
+            color: Vec3::new(0.3, 0.6, 0.7),
+        },
+        Light {
+            pos_rad: Vec3::new(0.9, 0.2, 0.1),
+            color: Vec3::new(0.5, 0.1, 0.1),
+        },
+        Light {
+            pos_rad: Vec3::new(0.2, 0.8, 0.1),
+            color: Vec3::new(0.1, 0.5, 0.1),
+        },
+        Light {
+            pos_rad: Vec3::new(0.9, 0.9, 0.1),
+            color: Vec3::new(0.1, 0.1, 0.5),
+        },
+    ];
 
     loop {
         set_camera(&shadow_cam);
-        clear_background(RED);
+        clear_background(WHITE);
 
         draw_line(-0.4, 0.4, -0.8, 0.9, 0.05, BLUE);
         draw_rectangle(-0.3, 0.3, 0.2, 0.2, GREEN);
@@ -59,7 +96,13 @@ async fn main() {
         clear_background(WHITE);
 
         gl_use_material(&material);
-        material.set_uniform("pos_rad", transform_shader_pos(&shadow_pos, ratio));
+        for (i, light) in lights.iter_mut().enumerate() {
+            material.set_uniform(
+                &format!("lights[{}].pos_rad", i),
+                transform_shader_pos(&light.pos_rad, ratio),
+            );
+            material.set_uniform(&format!("lights[{}].color", i), light.color);
+        }
         draw_texture_ex(
             &target.texture,
             0.0,
@@ -88,22 +131,22 @@ async fn main() {
             1.0,
             WHITE,
         );
-        draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
 
+        let player = &mut lights[0];
         if is_key_down(KeyCode::A) {
-            shadow_pos.x -= 0.01;
+            player.pos_rad.x -= 0.01;
         }
 
         if is_key_down(KeyCode::D) {
-            shadow_pos.x += 0.01;
+            player.pos_rad.x += 0.01;
         }
 
         if is_key_down(KeyCode::W) {
-            shadow_pos.y += 0.01;
+            player.pos_rad.y += 0.01;
         }
 
         if is_key_down(KeyCode::S) {
-            shadow_pos.y -= 0.01;
+            player.pos_rad.y -= 0.01;
         }
 
         next_frame().await
@@ -119,6 +162,13 @@ uniform sampler2D Texture;
 uniform vec3 pos_rad;
 uniform vec2 dims;
 
+#define MAX_LIGHTS 4
+struct Light {
+    vec3 pos_rad;
+    vec3 color;
+};
+uniform Light lights[MAX_LIGHTS];
+
 float in_circle(vec2 a, vec3 b) {
     vec2 ta = vec2(a.x - b.x, a.y - b.y);
     if (length(ta) <= b.z) {
@@ -132,13 +182,25 @@ void main() {
     vec2 shader_pos = gl_FragCoord.xy / dims;
     shader_pos.y *= dims.y / dims.x;
 
-    float dist = in_circle(shader_pos, pos_rad);
-    if (dist > 0) {
-        float intensity = (pos_rad.z - dist) / pos_rad.z;
-        gl_FragColor = vec4(res * vec3(intensity), 1.0);
-    } else {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    int found = 0;
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+        Light light = lights[i];
+        float dist = in_circle(shader_pos, light.pos_rad);
+        if (dist > 0) {
+            float intensity = (light.pos_rad.z - dist) / light.pos_rad.z;
+            if (found == 0) {
+                res = res * light.color * intensity;
+                found = 1;
+            } else {
+                res = mix(res, light.color,  intensity);
+            }
+        }
     }
+    if (found == 0) {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    } else {
+        gl_FragColor = vec4(res, 0.0);
+    }   
 }"#;
 
 const SHADOW_VERTEX_SHADER: &'static str = r#"#version 330 core
