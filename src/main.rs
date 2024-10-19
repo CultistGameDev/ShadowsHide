@@ -25,7 +25,7 @@ async fn main() {
     )
     .unwrap();
     material.set_uniform("dims", screen_size());
-    
+
     let shadow_cam: Camera2D = Camera2D {
         zoom: vec2(1.0, screen_width() / screen_height()),
         target: Vec2::new(0.0, 0.0),
@@ -108,12 +108,12 @@ uniform sampler2D Texture;
 uniform vec3 pos_rad;
 uniform vec2 dims;
 
-int in_circle(vec2 a, vec3 b) {
+float in_circle(vec2 a, vec3 b) {
     vec2 ta = vec2(a.x - b.x, a.y - b.y);
     if (length(ta) <= b.z) {
-        return 1;
+        return length(ta);
     }
-    return 0;
+    return 0.0;
 }
 
 void main() {
@@ -121,8 +121,10 @@ void main() {
     vec2 shader_pos = gl_FragCoord.xy / dims;
     shader_pos.y *= dims.y / dims.x;
 
-    if (in_circle(shader_pos, pos_rad) == 1) {
-        gl_FragColor = vec4(res, 1.0);
+    float dist = in_circle(shader_pos, pos_rad);
+    if (dist > 0) {
+        float intensity = (pos_rad.z - dist) / pos_rad.z;
+        gl_FragColor = vec4(res * vec3(intensity), 1.0);
     } else {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
     }
