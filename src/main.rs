@@ -1,11 +1,22 @@
 use macroquad::prelude::*;
-use miniquad::window::screen_size;
+use miniquad::{conf::Platform, window::screen_size};
 
 fn transform_shader_pos(v: &Vec3, ratio: f32) -> Vec3 {
     Vec3::new(v.x, v.y / ratio, v.z)
 }
 
-#[macroquad::main("macroquad game jam")]
+fn window_conf() -> Conf {
+    Conf {
+        window_title: "Shadow Game".to_owned(),
+        fullscreen: false,
+        window_resizable: false,
+        window_width: 1024,
+        window_height: 576,
+        ..Default::default()
+    }
+}
+
+#[macroquad::main(window_conf())]
 async fn main() {
     let target = render_target(screen_width() as u32, screen_height() as u32);
     target.texture.set_filter(FilterMode::Nearest);
