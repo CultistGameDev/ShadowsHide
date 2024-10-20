@@ -23,6 +23,8 @@ float in_circle(vec2 a, vec3 b) {
   return 0.0;
 }
 
+#define MIN_INTENSITY 0.1
+
 void main() {
   vec3 res = texture(Texture, uv).rgb;
   vec2 shader_pos = gl_FragCoord.xy / dims;
@@ -33,7 +35,8 @@ void main() {
     Light light = lights[i];
     float dist = in_circle(shader_pos, light.pos_rad);
     if (dist > 0) {
-      float intensity = (light.pos_rad.z - dist) / light.pos_rad.z;
+      float intensity =
+          max((light.pos_rad.z - dist) / light.pos_rad.z, MIN_INTENSITY);
       if (found == 0) {
         res = res * light.color * intensity;
         found = 1;
@@ -43,7 +46,7 @@ void main() {
     }
   }
   if (found == 0) {
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    gl_FragColor = vec4(res * MIN_INTENSITY, 1.0);
   } else {
     gl_FragColor = vec4(res, 0.0);
   }
