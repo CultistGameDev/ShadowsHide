@@ -23,7 +23,8 @@ float in_circle(vec2 a, vec3 b) {
   return 0.0;
 }
 
-#define MIN_INTENSITY 0.1
+#define MIN_INTENSITY 0.06
+#define BACKGROUND_INTENSITY 0.03
 
 void main() {
   vec3 res = texture(Texture, uv).rgb;
@@ -46,7 +47,7 @@ void main() {
     }
   }
   if (found == 0) {
-    gl_FragColor = vec4(res * MIN_INTENSITY, 1.0);
+    gl_FragColor = vec4(mix(res, lights[0].color.rgb, 0.1) * BACKGROUND_INTENSITY, 1.0);
   } else {
     gl_FragColor = vec4(res, 0.0);
   }

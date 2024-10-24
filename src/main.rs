@@ -61,7 +61,7 @@ async fn main() {
     let mut lights: Vec<Light> = vec![
         Light {
             pos_rad: vec3(0.5, 0.25, 0.2),
-            color: vec3(0.9, 0.9, 0.9),
+            color: vec3(0.81, 0.77, 0.67),
         },
         Light {
             pos_rad: vec3(0.9, 0.2, 0.0),
