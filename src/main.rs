@@ -1,7 +1,8 @@
 use macroquad::prelude::*;
 use miniquad::window::screen_size;
-use shadowgame::{player::Player, shader::Shader};
+use shadowgame::{player::Player, settings::GameSettings, shader::Shader};
 
+// * need this to stop the spot light being like an oval
 fn transform_shader_pos(v: &Vec3, ratio: f32) -> Vec3 {
     vec3(v.x, v.y / ratio, v.z)
 }
@@ -57,7 +58,7 @@ async fn main() {
 
     let ratio = screen_width() / screen_height();
     let mut player: Player = Player::new(vec2(0.0, 0.3), vec2(0.2, 0.2), vec2(0.5, -0.5)).await;
-    let ground = (-1.0, 0.4, 2.0, 0.2);
+    let ground = Rect::new(-1.0, 0.4, 2.0, 0.2);
     let mut lights: Vec<Light> = vec![
         Light {
             pos_rad: vec3(0.5, 0.25, 0.2),
@@ -84,12 +85,16 @@ async fn main() {
         ..Default::default()
     };
 
+    let mut time = get_time();
+
+    let settings: GameSettings = Default::default();
+
     loop {
         set_camera(&camera);
 
         clear_background(DARKGRAY);
 
-        draw_rectangle(ground.0, ground.1, ground.2, ground.3, WHITE);
+        draw_rectangle(ground.x, ground.y, ground.w, ground.h, WHITE);
         player.draw();
 
         set_default_camera();
@@ -115,18 +120,23 @@ async fn main() {
         );
         gl_use_default_material();
 
+        let delta = get_time() - time;
         let mut move_dir = Vec2::ZERO;
         if is_key_down(KeyCode::A) {
-            move_dir.x -= 0.01;
+            move_dir.x -= settings.player_move_speed_x * delta as f32;
         }
 
         if is_key_down(KeyCode::D) {
-            move_dir.x += 0.01;
+            move_dir.x += settings.player_move_speed_x * delta as f32;
         }
 
-        player.movement(move_dir);
+        player.set_vel(move_dir);
+
         camera.target.x += move_dir.x;
 
+        player.update();
+
+        time = get_time();
         next_frame().await
     }
 }
