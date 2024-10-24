@@ -56,7 +56,7 @@ async fn main() {
     target.texture.set_filter(FilterMode::Nearest);
 
     let ratio = screen_width() / screen_height();
-    let mut player = Player::new(vec2(0.0, 0.25), vec2(0.1, 0.1), vec2(0.5, -0.5));
+    let mut player: Player = Player::new(vec2(0.0, 0.3), vec2(0.2, 0.2), vec2(0.5, -0.5)).await;
     let ground = (-1.0, 0.4, 2.0, 0.2);
     let mut lights: Vec<Light> = vec![
         Light {
