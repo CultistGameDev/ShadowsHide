@@ -1,8 +1,6 @@
 use animation::{AnimatedSprite, Animation};
 use macroquad::prelude::*;
 
-use crate::assets::asset_path;
-
 pub struct Player {
     pub pos: Vec2,
     pub dims: Vec2,
@@ -15,29 +13,21 @@ pub struct Player {
 }
 
 impl Player {
-    pub async fn new(pos: Vec2, dims: Vec2, offset: Vec2) -> Self {
+    pub fn new(
+        pos: Vec2,
+        dims: Vec2,
+        offset: Vec2,
+        idle_sprite: Texture2D,
+        walking_sprite: Texture2D,
+    ) -> Self {
         Player {
             pos,
             dims,
             offset,
             dir: vec2(1.0, 0.0),
             vel: vec2(0.0, 0.0),
-            idle_sprite: load_texture(
-                asset_path()
-                    .join("sprites/anims/idle.png")
-                    .to_str()
-                    .unwrap(),
-            )
-            .await
-            .expect("Failed to load texture"),
-            walking_sprite: load_texture(
-                asset_path()
-                    .join("sprites/anims/walk.png")
-                    .to_str()
-                    .unwrap(),
-            )
-            .await
-            .expect("Failed to load texture"),
+            idle_sprite,
+            walking_sprite,
             anim: AnimatedSprite::new(
                 64,
                 64,

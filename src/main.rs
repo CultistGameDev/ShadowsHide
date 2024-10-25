@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 use miniquad::window::screen_size;
-use shadowgame::{player::Player, settings::GameSettings, shader::Shader};
+use shadowgame::{assets::Assets, player::Player, settings::GameSettings};
 
 // * need this to stop the spot light being like an oval
 fn transform_shader_pos(v: &Vec3, ratio: f32) -> Vec3 {
@@ -25,7 +25,7 @@ struct Light {
 const MAX_LIGHTS: usize = 4;
 
 #[macroquad::main(window_conf())]
-async fn main() {
+async fn main() -> Result<(), macroquad::Error> {
     let mut uniforms = vec![
         UniformDesc::new("pos_rad", UniformType::Float3),
         UniformDesc::new("dims", UniformType::Float2),
@@ -41,10 +41,14 @@ async fn main() {
             UniformType::Float3,
         ));
     }
+    set_pc_assets_folder("assets");
+    let assets = Assets::new().await?;
 
-    let shader = Shader::new("shadowblob.vert", "shadowblob.frag");
     let material = load_material(
-        shader.to_source(),
+        ShaderSource::Glsl {
+            vertex: shadowgame::assets::SHADOWBLOB_SHADER_VERT,
+            fragment: shadowgame::assets::SHADOWBLOB_SHADER_FRAG,
+        },
         MaterialParams {
             uniforms: uniforms,
             ..Default::default()
@@ -57,7 +61,13 @@ async fn main() {
     target.texture.set_filter(FilterMode::Nearest);
 
     let ratio = screen_width() / screen_height();
-    let mut player: Player = Player::new(vec2(0.0, 0.3), vec2(0.2, 0.2), vec2(0.5, -0.5)).await;
+    let mut player: Player = Player::new(
+        vec2(0.0, 0.3),
+        vec2(0.2, 0.2),
+        vec2(0.5, -0.5),
+        assets.player_idle,
+        assets.player_walk,
+    );
     let ground = Rect::new(-1.0, 0.4, 2.0, 0.2);
     let mut lights: Vec<Light> = vec![
         Light {

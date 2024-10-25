@@ -11,3 +11,5 @@ impl Default for GameSettings {
         }
     }
 }
+
+pub static ASSET_DIR: &'static str = "assets";

@@ -1,36 +1,24 @@
-#[cfg(not(target_family = "wasm"))]
-use std::env::current_exe;
-use std::path::PathBuf;
+use macroquad::prelude::*;
 
-pub const ASSET_DIR: &str = "assets";
+pub static SHADOWBLOB_SHADER_VERT: &str = include_str!("../assets/shaders/shadowblob.vert");
+pub static SHADOWBLOB_SHADER_FRAG: &str = include_str!("../assets/shaders/shadowblob.frag");
 
-#[cfg(not(target_family = "wasm"))]
-pub fn asset_path() -> PathBuf {
-    match std::env::var("CARGO_MANIFEST_DIR") {
-        Ok(cargo_dir) => {
-            let mut cargo_path = PathBuf::new();
-            cargo_path.push(cargo_dir);
-            cargo_path.push(ASSET_DIR);
-            return cargo_path;
-        }
-        _ => {}
-    };
-
-    match current_exe() {
-        Ok(path) => {
-            let mut asset_path = path.clone();
-            asset_path.pop();
-            asset_path.push(ASSET_DIR);
-            if asset_path.is_dir() {
-                return asset_path;
-            }
-        }
-        _ => {}
-    }
-    panic!("Asset path doesn't exist")
+pub struct Assets {
+    pub player_walk: Texture2D,
+    pub player_idle: Texture2D,
 }
 
-#[cfg(target_family = "wasm")]
-pub fn asset_path() -> PathBuf {
-    PathBuf::from("assets")
+impl Assets {
+    pub async fn new() -> Result<Assets, macroquad::Error> {
+        let player_walk: Texture2D = load_texture("sprites/anims/walk.png").await?;
+        player_walk.set_filter(FilterMode::Nearest);
+        let player_idle: Texture2D = load_texture("sprites/anims/idle.png").await?;
+        player_walk.set_filter(FilterMode::Nearest);
+        build_textures_atlas();
+
+        Ok(Assets {
+            player_walk,
+            player_idle,
+        })
+    }
 }
