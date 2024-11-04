@@ -1,2 +1,2 @@
 # shadow-time
-Quads Jam 2024 entry
+2D Side Scrolling Horror Game
