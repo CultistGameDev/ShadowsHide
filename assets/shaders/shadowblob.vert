@@ -1,7 +1,7 @@
 #version 330 core
-attribute vec3 position;
-attribute vec2 texcoord;
-attribute vec4 color0;
+in vec3 position;
+in vec2 texcoord;
+in vec4 color0;
 
 out vec2 uv;
 out vec4 color;
